@@ -51,8 +51,7 @@ class RegistrationModel
         if (!$return) return false;
 
         // generate random hash for email verification (40 bytes)
-        $user_activation_hash = bin2hex(random_bytes(40));
-
+        $user_activation_hash = null;
         // write user data to database
         if (!self::writeNewUserToDatabase($user_name, $user_password_hash, $user_email, time(), $user_activation_hash)) {
             Session::add('feedback_negative', Text::get('FEEDBACK_ACCOUNT_CREATION_FAILED'));
@@ -67,22 +66,11 @@ class RegistrationModel
             return false;
         }
 
-        // send verification email
-        if (self::sendVerificationEmail($user_id, $user_email, $user_activation_hash)) {
-            Session::add('feedback_positive', Text::get('FEEDBACK_ACCOUNT_SUCCESSFULLY_CREATED'));
-            return true;
-        }
-
-        // if verification email sending failed: instantly delete the user
-        self::rollbackRegistrationByUserId($user_id);
-        Session::add('feedback_negative', Text::get('FEEDBACK_VERIFICATION_MAIL_SENDING_FAILED'));
-        return false;
     }
 
     /**
      * Validates the registration input
      *
-     * @param $captcha
      * @param $user_name
      * @param $user_password_new
      * @param $user_password_repeat
@@ -194,28 +182,50 @@ class RegistrationModel
      *
      * @return bool
      */
-    public static function writeNewUserToDatabase($user_name, $user_password_hash, $user_email, $user_creation_timestamp, $user_activation_hash)
-    {
-        $database = DatabaseFactory::getFactory()->getConnection();
+   public static function writeNewUserToDatabase($user_name, $user_password_hash, $user_email, $user_creation_timestamp, $user_activation_hash)
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
 
-        // write new users data into database
-        $sql = "INSERT INTO users (user_name, user_password_hash, user_email, user_creation_timestamp, user_activation_hash, user_provider_type)
-                    VALUES (:user_name, :user_password_hash, :user_email, :user_creation_timestamp, :user_activation_hash, :user_provider_type)";
-        $query = $database->prepare($sql);
-        $query->execute(array(':user_name' => $user_name,
-                              ':user_password_hash' => $user_password_hash,
-                              ':user_email' => $user_email,
-                              ':user_creation_timestamp' => $user_creation_timestamp,
-                              ':user_activation_hash' => $user_activation_hash,
-                              ':user_provider_type' => 'DEFAULT'));
-        $count =  $query->rowCount();
-        if ($count == 1) {
-            return true;
-        }
+    // write new users data into database
+    $sql = "INSERT INTO users (
+                user_name,
+                user_password_hash,
+                user_email,
+                user_creation_timestamp,
+                user_activation_hash,
+                user_active,
+                user_provider_type
+            )
+            VALUES (
+                :user_name,
+                :user_password_hash,
+                :user_email,
+                :user_creation_timestamp,
+                :user_activation_hash,
+                :user_active,
+                :user_provider_type
+            )";
 
-        return false;
+    $query = $database->prepare($sql);
+
+    $query->execute(array(
+        ':user_name' => $user_name,
+        ':user_password_hash' => $user_password_hash,
+        ':user_email' => $user_email,
+        ':user_creation_timestamp' => $user_creation_timestamp,
+        ':user_activation_hash' => null,
+        ':user_active' => 1,
+        ':user_provider_type' => 'DEFAULT'
+    ));
+
+    $count = $query->rowCount();
+
+    if ($count == 1) {
+        return true;
     }
 
+    return false;
+}
     /**
      * Deletes the user from users table. Currently used to rollback a registration when verification mail sending
      * was not successful.
