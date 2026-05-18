@@ -21,28 +21,55 @@ class RegisterController extends Controller
      * Show the register form, but redirect to main-page if user is already logged-in
      */
     public function index()
-    {
-        if (LoginModel::isUserLoggedIn()) {
-            Redirect::home();
-        } else {
+{
+    // normale User dürfen die Seite nicht sehen wenn sie eingeloggt sind
+    // Admins dürfen weiterhin User anlegen
+
+    if (LoginModel::isUserLoggedIn()) {
+
+        // Prüfen ob Admin
+        if (Session::get('user_account_type') == 7) {
             $this->View->render('register/index');
+            return;
         }
+
+        Redirect::home();
+        return;
     }
+
+    // Nicht eingeloggte User dürfen sich registrieren
+    $this->View->render('register/index');
+}
 
     /**
      * Register page action
      * POST-request after form submit
      */
     public function register_action()
-    {
-        $registration_successful = RegistrationModel::registerNewUser();
-
-        if ($registration_successful) {
-            Redirect::to('login/index');
-        } else {
-            Redirect::to('register/index');
-        }
+{
+    // Wenn eingeloggt aber KEIN Admin -> verbieten
+    if (LoginModel::isUserLoggedIn() && Session::get('user_account_type') != 7) {
+        Redirect::home();
+        return;
     }
+
+    $registration_successful = RegistrationModel::registerNewUser();
+
+    if ($registration_successful) {
+
+        // Admin bleibt eingeloggt und kommt zurück zum Formular
+        if (LoginModel::isUserLoggedIn() && Session::get('user_account_type') == 7) {
+            Redirect::to('register/index');
+            return;
+        }
+
+        // Normaler User wird zum Login geschickt
+        Redirect::to('login/index');
+
+    } else {
+        Redirect::to('register/index');
+    }
+}
 
     /**
      * Verify user after activation mail link opened
