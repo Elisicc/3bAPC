@@ -186,6 +186,15 @@ class RegistrationModel
 {
     $database = DatabaseFactory::getFactory()->getConnection();
 
+    $user_account_type = 2;
+
+    if (
+        Session::get("user_account_type") == 7 &&
+        Request::post('user_account_type')
+    ) {
+        $user_account_type = Request::post('user_account_type');
+    }
+
     // write new users data into database
     $sql = "INSERT INTO users (
                 user_name,
@@ -194,6 +203,7 @@ class RegistrationModel
                 user_creation_timestamp,
                 user_activation_hash,
                 user_active,
+                user_account_type,
                 user_provider_type
             )
             VALUES (
@@ -203,6 +213,7 @@ class RegistrationModel
                 :user_creation_timestamp,
                 :user_activation_hash,
                 :user_active,
+                :user_account_type,
                 :user_provider_type
             )";
 
@@ -215,6 +226,7 @@ class RegistrationModel
         ':user_creation_timestamp' => $user_creation_timestamp,
         ':user_activation_hash' => null,
         ':user_active' => 1,
+        ':user_account_type' => $user_account_type,
         ':user_provider_type' => 'DEFAULT'
     ));
 
