@@ -92,4 +92,80 @@ class AdminModel
             return true;
         }
     }
+    /**
+ * Get all user groups
+ */
+public static function getAllUserGroups()
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $sql = "SELECT * FROM user_groups ORDER BY group_id ASC";
+
+    $query = $database->prepare($sql);
+    $query->execute();
+
+    return $query->fetchAll();
+}
+
+
+public static function changeUserGroup($user_id, $group_id)
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $sql = "UPDATE users
+            SET user_account_type = :group_id
+            WHERE user_id = :user_id
+            LIMIT 1";
+
+    $query = $database->prepare($sql);
+
+    $query->execute(array(
+        ':group_id' => $group_id,
+        ':user_id' => $user_id
+    ));
+
+    if ($query->rowCount() == 1) {
+        Session::add('feedback_positive', 'User group updated successfully');
+        return true;
+    }
+
+    Session::add('feedback_negative', 'Failed to update user group');
+    return false;
+}
+/**
+ * Change user role/group
+ *
+ * @param $userId
+ * @param $accountType
+ * @return bool
+ */
+public static function changeUserRole($userId, $accountType)
+{
+    // eigener Account darf nicht geändert werden
+    if ($userId == Session::get('user_id')) {
+        Session::add('feedback_negative', 'You cannot change your own role.');
+        return false;
+    }
+
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $query = $database->prepare("
+        UPDATE users
+        SET user_account_type = :user_account_type
+        WHERE user_id = :user_id
+        LIMIT 1
+    ");
+
+    $query->execute(array(
+        ':user_account_type' => $accountType,
+        ':user_id' => $userId
+    ));
+
+    if ($query->rowCount() == 1) {
+        Session::add('feedback_positive', 'User role updated.');
+        return true;
+    }
+
+    return false;
+}
 }
