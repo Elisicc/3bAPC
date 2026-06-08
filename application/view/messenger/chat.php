@@ -33,19 +33,52 @@
 
                 <h3>Chat</h3>
 
+                <h3>Chat</h3>
+
+                <section class="discussion">
+
                 <?php foreach ($this->messages as $message) { ?>
 
-                    <div style="
-                        margin-bottom:15px;
-                        padding:10px;
-                        border:1px solid #ccc;
-                    ">
+                    <?php
+                        if ($message->sender_id == Session::get('user_id')) {
+                            $class = "sender";
+                        } else {
+                            $class = "recipient";
+                        }
+                    ?>
 
-                        <?= $message->message_content; ?> 
+                    <div class="bubble <?= $class; ?>">
+
+                        <?= $message->message_content; ?>
 
                     </div>
 
                 <?php } ?>
+
+                </section>
+                <hr>
+
+                <form action="<?= Config::get('URL'); ?>messenger/send" method="post">
+                <br><br><br><br>
+
+                    <input
+                        type="hidden"
+                        name="recipient_id"
+                        value="<?= $this->chat_partner_id; ?>"
+                    >
+                    <textarea
+                        name="message_content"
+                        rows="4"
+                        cols="60"
+                    ></textarea>
+
+                    <br><br>
+
+                    <input
+                        type="submit"
+                        value="Send"
+                    >
+                </form>
 
             </div>
 
