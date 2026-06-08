@@ -32,7 +32,7 @@
                     <a href="<?php echo Config::get('URL'); ?>note/index">My Notes</a>
                 </li>
                 <li <?php if (View::checkForActiveController($filename, "Chat")) { echo ' class="active" '; } ?> >
-                    <a href="<?php echo Config::get('URL'); ?>note/index">Chat</a>
+                    <a href="<?php echo Config::get('URL'); ?>messenger/index">Chat</a>
                 </li>
             <?php } else { ?>
                 <!-- for not logged in users -->
