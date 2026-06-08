@@ -307,3 +307,117 @@ html { font-family: 'PT Sans', Georgia, serif; }
 	border-bottom-right-radius: 0.1em;
 	border-top-right-radius: 0.1em;
 }
+
+.group-create-button {
+	background-color: #4a90e2;
+	color: #fff;
+	border: none;
+	border-radius: 0.5rem;
+	padding: 0.75rem 1rem;
+	cursor: pointer;
+	font-size: 0.95rem;
+	margin-bottom: 1rem;
+}
+
+.group-create-button:hover {
+	background-color: #3a78c2;
+}
+
+.group-dialog-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1rem;
+	z-index: 9999;
+}
+
+.group-dialog-overlay.hidden {
+	display: none;
+}
+
+.group-dialog {
+	background: #fff;
+	border: 1px solid #ccc;
+	border-radius: 1rem;
+	padding: 1.5rem;
+	width: min(480px, 100%);
+	box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+}
+
+.group-dialog-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 1rem;
+}
+
+.group-dialog-header h2 {
+	margin: 0;
+	font-size: 1.2rem;
+}
+
+.dialog-close {
+	background: transparent;
+	border: none;
+	font-size: 1.6rem;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.group-dialog label {
+	display: block;
+	margin-bottom: 0.75rem;
+}
+
+.group-dialog input[type="text"] {
+	width: 100%;
+	padding: 0.75rem;
+	border: 1px solid #ccc;
+	border-radius: 0.5rem;
+	margin-bottom: 1rem;
+	font-size: 1rem;
+}
+
+.group-member-list {
+	max-height: 240px;
+	overflow-y: auto;
+	padding: 0.5rem 0;
+	margin-bottom: 1rem;
+}
+
+.group-member-item {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 0.5rem;
+}
+
+.group-dialog-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.75rem;
+}
+
+.group-dialog-actions button {
+	padding: 0.75rem 1rem;
+	border-radius: 0.5rem;
+	border: 1px solid #ccc;
+	background: #fff;
+	cursor: pointer;
+}
+
+.group-dialog-actions button[type="submit"] {
+	background: #4a90e2;
+	border-color: #4a90e2;
+	color: #fff;
+}
+
+.group-dialog-actions button[type="submit"]:hover {
+	background: #3a78c2;
+}

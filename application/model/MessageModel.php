@@ -73,16 +73,183 @@ class MessageModel
         return $query->fetchAll();
     }
 
-        /**
+    public static function getGroupsForCurrentUser()
+    {
+        self::ensureGroupTablesExist();
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $sql = "SELECT g.*
+                FROM chat_groups g
+                INNER JOIN chat_group_members gm ON g.group_id = gm.group_id
+                WHERE gm.user_id = :user_id
+                ORDER BY g.created_at DESC";
+
+        $query = $database->prepare($sql);
+        $query->execute(array(':user_id' => Session::get('user_id')));
+
+        return $query->fetchAll();
+    }
+
+    public static function ensureGroupTablesExist()
+    {
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        $database->exec("CREATE TABLE IF NOT EXISTS chat_groups (
+            group_id INT AUTO_INCREMENT PRIMARY KEY,
+            group_name VARCHAR(255) NOT NULL,
+            created_by INT NOT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+        $database->exec("CREATE TABLE IF NOT EXISTS chat_group_members (
+            group_id INT NOT NULL,
+            user_id INT NOT NULL,
+            PRIMARY KEY (group_id, user_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+        $database->exec("CREATE TABLE IF NOT EXISTS group_messages (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            group_id INT NOT NULL,
+            sender_id INT NOT NULL,
+            message_content TEXT NOT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    }
+
+    public static function createGroup($group_name, $created_by, array $member_ids)
+    {
+        if (empty($group_name) || empty($member_ids)) {
+            return false;
+        }
+
+        self::ensureGroupTablesExist();
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $sql = "INSERT INTO chat_groups (group_name, created_by) VALUES (:group_name, :created_by)";
+        $query = $database->prepare($sql);
+        $query->execute(array(
+            ':group_name' => $group_name,
+            ':created_by' => $created_by
+        ));
+
+        $group_id = $database->lastInsertId();
+        $member_ids[] = $created_by;
+        $member_ids = array_unique($member_ids);
+
+        $sql = "INSERT INTO chat_group_members (group_id, user_id) VALUES (:group_id, :user_id)";
+        $query = $database->prepare($sql);
+
+        foreach ($member_ids as $member_id) {
+            $query->execute(array(
+                ':group_id' => $group_id,
+                ':user_id' => $member_id
+            ));
+        }
+
+        return $group_id;
+    }
+
+    public static function getGroupById($group_id)
+    {
+        self::ensureGroupTablesExist();
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $sql = "SELECT * FROM chat_groups WHERE group_id = :group_id";
+        $query = $database->prepare($sql);
+        $query->execute(array(':group_id' => $group_id));
+
+        return $query->fetch();
+    }
+
+    public static function getGroupMembers($group_id)
+    {
+        self::ensureGroupTablesExist();
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $sql = "SELECT u.user_id, u.user_name, u.user_email, u.user_has_avatar
+                FROM users u
+                INNER JOIN chat_group_members gm ON u.user_id = gm.user_id
+                WHERE gm.group_id = :group_id";
+
+        $query = $database->prepare($sql);
+        $query->execute(array(':group_id' => $group_id));
+
+        return $query->fetchAll();
+    }
+
+    public static function getGroupMessages($group_id)
+    {
+        self::ensureGroupTablesExist();
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $sql = "SELECT *
+                FROM group_messages
+                WHERE group_id = :group_id
+                ORDER BY created_at ASC";
+
+        $query = $database->prepare($sql);
+        $query->execute(array(':group_id' => $group_id));
+
+        return $query->fetchAll();
+    }
+
+    public static function isUserInGroup($group_id, $user_id)
+    {
+        self::ensureGroupTablesExist();
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+        $sql = "SELECT COUNT(*) AS count
+                FROM chat_group_members
+                WHERE group_id = :group_id
+                AND user_id = :user_id";
+
+        $query = $database->prepare($sql);
+        $query->execute(array(
+            ':group_id' => $group_id,
+            ':user_id' => $user_id
+        ));
+
+        $result = $query->fetch();
+        return !empty($result) && $result->count > 0;
+    }
+
+    /**
      * Send a message
      */
     public static function sendMessage(
         $sender_id,
         $recipient_id,
-        $message_content
+        $message_content,
+        $group_id = null
     )
     {
         $database = DatabaseFactory::getFactory()->getConnection();
+
+        if ($group_id) {
+            self::ensureGroupTablesExist();
+
+            $sql = "INSERT INTO group_messages
+                    (
+                        group_id,
+                        sender_id,
+                        message_content
+                    )
+                    VALUES
+                    (
+                        :group_id,
+                        :sender_id,
+                        :message_content
+                    )";
+
+            $query = $database->prepare($sql);
+            $query->execute(array(
+                ':group_id' => $group_id,
+                ':sender_id' => $sender_id,
+                ':message_content' => $message_content
+            ));
+
+            return;
+        }
 
         $sql = "INSERT INTO messages
                 (
@@ -98,15 +265,10 @@ class MessageModel
                 )";
 
         $query = $database->prepare($sql);
-
         $query->execute(array(
-
             ':sender_id' => $sender_id,
-
             ':recipient_id' => $recipient_id,
-
             ':message_content' => $message_content
-
         ));
     }
 }

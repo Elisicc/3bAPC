@@ -9,6 +9,20 @@
             <!-- USER LIST -->
             <div style="width:200px;">
 
+                <h3>Gruppen</h3>
+
+                <?php if (!empty($this->groups)) : ?>
+                    <?php foreach ($this->groups as $group) : ?>
+                        <div style="margin-bottom:15px;">
+                            <a href="<?= Config::get('URL'); ?>messenger/chatgroup/<?= $group->group_id; ?>">
+                                <?= htmlspecialchars($group->group_name); ?>
+                            </a>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <p>Du bist in noch keinen Gruppenchats.</p>
+                <?php endif; ?>
+
                 <h3>Users</h3>
 
                 <?php foreach ($this->users as $user) { ?>
@@ -36,7 +50,45 @@
 
             <div style="flex:1;">
 
-                <h3>Chat</h3>
+                <h3>
+                    <?php if (isset($this->group)) {
+                        echo 'Gruppenchat: ' . htmlspecialchars($this->group->group_name);
+                    } else {
+                        echo 'Chat';
+                    } ?>
+                </h3>
+
+                <p>Hier kannst du mit deinen Freunden chatten oder sogar Chat-Gruppen erstellen und mit mehreren Freunden gleichzeitig chatten!</p>
+
+                <button type="button" class="group-create-button" id="open-group-chat-dialog">Gruppenchat erstellen</button>
+
+                <div class="group-dialog-overlay hidden" id="group-chat-dialog">
+                    <div class="group-dialog">
+                        <div class="group-dialog-header">
+                            <h2>Gruppenchat erstellen</h2>
+                            <button type="button" class="dialog-close" id="close-group-chat-dialog">&times;</button>
+                        </div>
+                        <form action="<?= Config::get('URL'); ?>messenger/createGroup" method="post">
+                            <label for="group_name">Gruppenname</label>
+                            <input type="text" id="group_name" name="group_name" required />
+
+                            <p>Teilnehmer auswählen:</p>
+                            <div class="group-member-list">
+                                <?php foreach ($this->users as $user) { ?>
+                                    <label class="group-member-item">
+                                        <input type="checkbox" name="group_members[]" value="<?= $user->user_id; ?>" />
+                                        <?= htmlspecialchars($user->user_name); ?>
+                                    </label>
+                                <?php } ?>
+                            </div>
+
+                            <div class="group-dialog-actions">
+                                <button type="button" class="dialog-close" id="cancel-group-chat-dialog">Abbrechen</button>
+                                <button type="submit">Gruppe erstellen</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
                 <section class="discussion">
 
@@ -75,11 +127,15 @@
 
                 <form action="<?= Config::get('URL'); ?>messenger/send" method="post">
 
-                    <input
-                        type="hidden"
-                        name="recipient_id"
-                        value="<?= $this->chat_partner_id; ?>"
-                    >
+                    <?php if (isset($this->chat_group_id)) { ?>
+                        <input type="hidden" name="group_id" value="<?= $this->chat_group_id; ?>">
+                    <?php } else { ?>
+                        <input
+                            type="hidden"
+                            name="recipient_id"
+                            value="<?= $this->chat_partner_id; ?>"
+                        >
+                    <?php } ?>
 
                     <textarea
                         name="message_content"
@@ -95,6 +151,42 @@
                     >
 
                 </form>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        var dialog = document.getElementById('group-chat-dialog');
+                        var openButton = document.getElementById('open-group-chat-dialog');
+                        var closeButtons = document.querySelectorAll('.dialog-close');
+
+                        function toggleDialog(show) {
+                            if (show) {
+                                dialog.classList.remove('hidden');
+                            } else {
+                                dialog.classList.add('hidden');
+                            }
+                        }
+
+                        if (openButton) {
+                            openButton.addEventListener('click', function() {
+                                toggleDialog(true);
+                            });
+                        }
+
+                        closeButtons.forEach(function(button) {
+                            button.addEventListener('click', function() {
+                                toggleDialog(false);
+                            });
+                        });
+
+                        if (dialog) {
+                            dialog.addEventListener('click', function(event) {
+                                if (event.target === dialog) {
+                                    toggleDialog(false);
+                                }
+                            });
+                        }
+                    });
+                </script>
 
             </div>
 

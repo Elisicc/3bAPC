@@ -16,6 +16,33 @@ href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
 
     <div class="box">
 
+        <h3>Gruppen</h3>
+
+        <?php if (!empty($this->groups)) : ?>
+            <table class="overview-table">
+                <thead>
+                    <tr>
+                        <td>Gruppenname</td>
+                        <td>Open Chat</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($this->groups as $group) : ?>
+                        <tr>
+                            <td><?= htmlspecialchars($group->group_name); ?></td>
+                            <td>
+                                <a href="<?= Config::get('URL'); ?>messenger/chatgroup/<?= $group->group_id; ?>">
+                                    Open
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else : ?>
+            <p>Du bist in noch keinen Gruppenchats.</p>
+        <?php endif; ?>
+
         <h3>Select a user to chat with</h3>
 
         <table class="overview-table">
@@ -32,7 +59,7 @@ href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
         <table id="messenger-table" class="overview-table">
 
         <thead>
-    
+
         <tr>
             <td>Avatar</td>
             <td>Username</td>
