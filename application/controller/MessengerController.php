@@ -18,6 +18,7 @@ class MessengerController extends Controller
             'users' => MessageModel::getAllUsersExceptCurrentUser()
         ));
     }
+    
 
     /**
      * Open chat with specific user

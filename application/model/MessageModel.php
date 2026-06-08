@@ -9,7 +9,11 @@ class MessageModel
     {
         $database = DatabaseFactory::getFactory()->getConnection();
 
-        $sql = "SELECT user_id, user_name
+        $sql = "SELECT
+                    user_id,
+                    user_name,
+                    user_email,
+                    user_has_avatar
                 FROM users
                 WHERE user_id != :current_user_id";
 
@@ -19,8 +23,30 @@ class MessageModel
             ':current_user_id' => Session::get('user_id')
         ));
 
-        return $query->fetchAll();
+        $users = $query->fetchAll();
+
+        foreach ($users as $user) {
+
+        if (Config::get('USE_GRAVATAR')) {
+
+            $user->user_avatar_link =
+                AvatarModel::getGravatarLinkByEmail(
+                    $user->user_email
+                );
+
+        } else {
+
+            $user->user_avatar_link =
+                AvatarModel::getPublicAvatarFilePathOfUser(
+                    $user->user_has_avatar,
+                    $user->user_id
+                );
+        }
     }
+
+    return $users;
+}
+    
 
     /**
      * Get messages between two users
