@@ -13,11 +13,15 @@
 
                 <?php foreach ($this->users as $user) { ?>
 
-                    <div style="margin-bottom:10px;">
+                    <div style="margin-bottom:15px;">
 
                         <a href="<?= Config::get('URL'); ?>messenger/chat/<?= $user->user_id; ?>">
 
-                            <img src="<?= $user->user_avatar_link; ?>" />   
+                            <img
+                                src="<?= $user->user_avatar_link; ?>"
+                                style="width:70px; vertical-align:middle;"
+                            >
+
                             <?= $user->user_name; ?>
 
                         </a>
@@ -29,46 +33,57 @@
             </div>
 
             <!-- CHAT -->
-            <div style="flex:1;">
 
-                <h3>Chat</h3>
+            <div style="flex:1;">
 
                 <h3>Chat</h3>
 
                 <section class="discussion">
 
-                <?php foreach ($this->messages as $message) { ?>
+                    <?php foreach ($this->messages as $index => $message) {
 
-                    <?php
-                        if ($message->sender_id == Session::get('user_id')) {
-                            $class = "sender";
-                        } else {
-                            $class = "recipient";
+                        $previousMessage = isset($this->messages[$index - 1]) ? $this->messages[$index - 1] : null;
+                        $nextMessage = isset($this->messages[$index + 1]) ? $this->messages[$index + 1] : null;
+
+                        $class = $message->sender_id == Session::get('user_id') ? 'sender' : 'recipient';
+
+                        $sameSenderAsPrevious = $previousMessage && $previousMessage->sender_id == $message->sender_id;
+                        $sameSenderAsNext = $nextMessage && $nextMessage->sender_id == $message->sender_id;
+
+                        $groupClass = '';
+                        if (!$sameSenderAsPrevious && $sameSenderAsNext) {
+                            $groupClass = ' first';
+                        } elseif ($sameSenderAsPrevious && $sameSenderAsNext) {
+                            $groupClass = ' middle';
+                        } elseif ($sameSenderAsPrevious && !$sameSenderAsNext) {
+                            $groupClass = ' last';
                         }
+
                     ?>
 
-                    <div class="bubble <?= $class; ?>">
+                        <div class="bubble <?= $class . $groupClass; ?>">
 
-                        <?= $message->message_content; ?>
+                            <?= htmlspecialchars($message->message_content); ?>
 
-                    </div>
+                        </div>
 
-                <?php } ?>
+                    <?php } ?>
 
                 </section>
+
                 <hr>
 
                 <form action="<?= Config::get('URL'); ?>messenger/send" method="post">
-                <br><br><br><br>
 
                     <input
                         type="hidden"
                         name="recipient_id"
                         value="<?= $this->chat_partner_id; ?>"
                     >
+
                     <textarea
                         name="message_content"
-                        rows="4"
+                        rows="5"
                         cols="60"
                     ></textarea>
 
@@ -78,6 +93,7 @@
                         type="submit"
                         value="Send"
                     >
+
                 </form>
 
             </div>
