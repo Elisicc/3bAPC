@@ -31,4 +31,19 @@ class MessengerController extends Controller
             'chat_partner_id' => $user_id
         ));
     }
+    public function send()
+    {
+        MessageModel::sendMessage(
+            Session::get('user_id'),
+            Request::post('recipient_id'),
+            Request::post('message_content')
+    );
+
+    Redirect::to(
+        "messenger/chat/" . Request::post('recipient_id')
+    );
+    }
+
+
+    
 }

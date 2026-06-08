@@ -72,4 +72,41 @@ class MessageModel
 
         return $query->fetchAll();
     }
+
+        /**
+     * Send a message
+     */
+    public static function sendMessage(
+        $sender_id,
+        $recipient_id,
+        $message_content
+    )
+    {
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        $sql = "INSERT INTO messages
+                (
+                    sender_id,
+                    recipient_id,
+                    message_content
+                )
+                VALUES
+                (
+                    :sender_id,
+                    :recipient_id,
+                    :message_content
+                )";
+
+        $query = $database->prepare($sql);
+
+        $query->execute(array(
+
+            ':sender_id' => $sender_id,
+
+            ':recipient_id' => $recipient_id,
+
+            ':message_content' => $message_content
+
+        ));
+    }
 }
