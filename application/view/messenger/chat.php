@@ -17,6 +17,7 @@
 
                         <a href="<?= Config::get('URL'); ?>messenger/chat/<?= $user->user_id; ?>">
 
+                            <img src="<?= $user->user_avatar_link; ?>" />   
                             <?= $user->user_name; ?>
 
                         </a>
