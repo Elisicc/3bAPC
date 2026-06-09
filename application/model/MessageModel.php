@@ -40,8 +40,13 @@ class MessageModel
                 AvatarModel::getPublicAvatarFilePathOfUser(
                     $user->user_has_avatar,
                     $user->user_id
-                );
+                ); 
         }
+        
+        $user->unread_messages =
+            self::getUnreadMessagesFromUser(
+                $user->user_id
+        );
     }
 
     return $users;
@@ -271,4 +276,58 @@ class MessageModel
             ':message_content' => $message_content
         ));
     }
+
+    public static function getUnreadMessagesCount()
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $sql = "SELECT COUNT(*) as unread
+            FROM messages
+            WHERE recipient_id = :user_id
+            AND is_read = 0";
+
+    $query = $database->prepare($sql);
+
+    $query->execute(array(
+        ':user_id' => Session::get('user_id')
+    ));
+
+    return $query->fetch()->unread;
+}
+public static function getUnreadMessagesFromUser($other_user_id)
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $sql = "SELECT COUNT(*) AS unread
+            FROM messages
+            WHERE sender_id = :other
+            AND recipient_id = :me
+            AND is_read = 0";
+
+    $query = $database->prepare($sql);
+
+    $query->execute(array(
+        ':other' => $other_user_id,
+        ':me' => Session::get('user_id')
+    ));
+
+    return $query->fetch()->unread;
+}
+public static function markMessagesAsRead($other_user_id)
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $sql = "UPDATE messages
+            SET is_read = 1
+            WHERE sender_id = :other
+            AND recipient_id = :me
+            AND is_read = 0";
+
+    $query = $database->prepare($sql);
+
+    $query->execute(array(
+        ':other' => $other_user_id,
+        ':me' => Session::get('user_id')
+    ));
+}
 }

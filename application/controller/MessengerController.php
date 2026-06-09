@@ -30,6 +30,9 @@ class MessengerController extends Controller
             Redirect::to('messenger/index');
         }
 
+        MessageModel::markMessagesAsRead($user_id);
+
+
         $this->View->render('messenger/chat', array(
             'users' => MessageModel::getAllUsersExceptCurrentUser(),
             'groups' => MessageModel::getGroupsForCurrentUser(),
