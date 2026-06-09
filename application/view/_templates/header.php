@@ -32,7 +32,12 @@
                     <a href="<?php echo Config::get('URL'); ?>note/index">My Notes</a>
                 </li>
                 <li <?php if (View::checkForActiveController($filename, "Chat")) { echo ' class="active" '; } ?> >
-                    <a href="<?php echo Config::get('URL'); ?>messenger/index">Chat</a>
+                    <a href="<?php echo Config::get('URL'); ?>messenger/index">Chat <?php
+                                $unread = MessageModel::getUnreadMessagesCount();
+                                if($unread > 0)
+                                {
+                                    echo " (".$unread.")";
+                                }?></a>
                 </li>
             <?php } else { ?>
                 <!-- for not logged in users -->

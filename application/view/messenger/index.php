@@ -79,7 +79,7 @@ href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
                             <?= $user->user_name; ?>
                         </td>
                         <td>
-                            0
+                            <?= $user->unread_messages; ?>
                         </td>
                         <td>
                             <a href="<?= Config::get('URL'); ?>messenger/chat/<?= $user->user_id; ?>">
