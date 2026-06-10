@@ -9,21 +9,10 @@ class MessageModel
     {
         $database = DatabaseFactory::getFactory()->getConnection();
 
-        $sql = "SELECT
-                    user_id,
-                    user_name,
-                    user_email,
-                    user_has_avatar
-                FROM users
-                WHERE user_id != :current_user_id";
-
-        $query = $database->prepare($sql);
-
-        $query->execute(array(
-            ':current_user_id' => Session::get('user_id')
-        ));
-
+        $query = $database->prepare("CALL sp_get_all_users_except(:current_user_id)");
+        $query->execute(array(':current_user_id' => Session::get('user_id')));
         $users = $query->fetchAll();
+        $query->closeCursor();
 
         foreach ($users as $user) {
 
@@ -59,23 +48,15 @@ class MessageModel
     public static function getMessagesBetweenUsers($other_user_id)
     {
         $database = DatabaseFactory::getFactory()->getConnection();
-
-        $sql = "SELECT *
-                FROM messages
-                WHERE
-                    (sender_id = :me AND recipient_id = :other)
-                OR
-                    (sender_id = :other AND recipient_id = :me)
-                ORDER BY created_at ASC";
-
-        $query = $database->prepare($sql);
-
+        $query = $database->prepare("CALL sp_get_messages_between(:me, :other)");
         $query->execute(array(
             ':me' => Session::get('user_id'),
             ':other' => $other_user_id
         ));
 
-        return $query->fetchAll();
+        $results = $query->fetchAll();
+        $query->closeCursor();
+        return $results;
     }
 
     public static function getGroupsForCurrentUser()
@@ -83,42 +64,44 @@ class MessageModel
         self::ensureGroupTablesExist();
 
         $database = DatabaseFactory::getFactory()->getConnection();
-        $sql = "SELECT g.*
-                FROM chat_groups g
-                INNER JOIN chat_group_members gm ON g.group_id = gm.group_id
-                WHERE gm.user_id = :user_id
-                ORDER BY g.created_at DESC";
-
-        $query = $database->prepare($sql);
+        $query = $database->prepare("CALL sp_get_groups_for_user(:user_id)");
         $query->execute(array(':user_id' => Session::get('user_id')));
 
-        return $query->fetchAll();
+        $results = $query->fetchAll();
+        $query->closeCursor();
+        return $results;
     }
 
     public static function ensureGroupTablesExist()
     {
         $database = DatabaseFactory::getFactory()->getConnection();
-
-        $database->exec("CREATE TABLE IF NOT EXISTS chat_groups (
+        // Call stored procedure that ensures group tables exist (create if not exists)
+        // The procedure `sp_ensure_group_tables` should be created in the database beforehand.
+        try {
+            $database->exec("CALL sp_ensure_group_tables()");
+        } catch (Exception $e) {
+            // fallback: create tables directly if stored procedure not present
+            $database->exec("CREATE TABLE IF NOT EXISTS chat_groups (
             group_id INT AUTO_INCREMENT PRIMARY KEY,
             group_name VARCHAR(255) NOT NULL,
             created_by INT NOT NULL,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-        $database->exec("CREATE TABLE IF NOT EXISTS chat_group_members (
+            $database->exec("CREATE TABLE IF NOT EXISTS chat_group_members (
             group_id INT NOT NULL,
             user_id INT NOT NULL,
             PRIMARY KEY (group_id, user_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-        $database->exec("CREATE TABLE IF NOT EXISTS group_messages (
+            $database->exec("CREATE TABLE IF NOT EXISTS group_messages (
             id INT AUTO_INCREMENT PRIMARY KEY,
             group_id INT NOT NULL,
             sender_id INT NOT NULL,
             message_content TEXT NOT NULL,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        }
     }
 
     public static function createGroup($group_name, $created_by, array $member_ids)
@@ -130,25 +113,20 @@ class MessageModel
         self::ensureGroupTablesExist();
 
         $database = DatabaseFactory::getFactory()->getConnection();
-        $sql = "INSERT INTO chat_groups (group_name, created_by) VALUES (:group_name, :created_by)";
-        $query = $database->prepare($sql);
-        $query->execute(array(
-            ':group_name' => $group_name,
-            ':created_by' => $created_by
-        ));
 
-        $group_id = $database->lastInsertId();
+        // create group via stored procedure which returns the new group_id
+        $stmt = $database->prepare("CALL sp_create_group(:group_name, :created_by)");
+        $stmt->execute(array(':group_name' => $group_name, ':created_by' => $created_by));
+        $row = $stmt->fetch();
+        $stmt->closeCursor();
+        $group_id = $row ? $row->group_id : null;
         $member_ids[] = $created_by;
         $member_ids = array_unique($member_ids);
 
-        $sql = "INSERT INTO chat_group_members (group_id, user_id) VALUES (:group_id, :user_id)";
-        $query = $database->prepare($sql);
-
+        $stmtMember = $database->prepare("CALL sp_add_group_member(:group_id, :user_id)");
         foreach ($member_ids as $member_id) {
-            $query->execute(array(
-                ':group_id' => $group_id,
-                ':user_id' => $member_id
-            ));
+            $stmtMember->execute(array(':group_id' => $group_id, ':user_id' => $member_id));
+            $stmtMember->closeCursor();
         }
 
         return $group_id;
@@ -159,11 +137,11 @@ class MessageModel
         self::ensureGroupTablesExist();
 
         $database = DatabaseFactory::getFactory()->getConnection();
-        $sql = "SELECT * FROM chat_groups WHERE group_id = :group_id";
-        $query = $database->prepare($sql);
-        $query->execute(array(':group_id' => $group_id));
-
-        return $query->fetch();
+        $query = $database->prepare("CALL sp_get_group_detail(:group_id, :detail_type)");
+        $query->execute(array(':group_id' => $group_id, ':detail_type' => 'group'));
+        $result = $query->fetch();
+        $query->closeCursor();
+        return $result;
     }
 
     public static function getGroupMembers($group_id)
@@ -171,15 +149,11 @@ class MessageModel
         self::ensureGroupTablesExist();
 
         $database = DatabaseFactory::getFactory()->getConnection();
-        $sql = "SELECT u.user_id, u.user_name, u.user_email, u.user_has_avatar
-                FROM users u
-                INNER JOIN chat_group_members gm ON u.user_id = gm.user_id
-                WHERE gm.group_id = :group_id";
-
-        $query = $database->prepare($sql);
-        $query->execute(array(':group_id' => $group_id));
-
-        return $query->fetchAll();
+        $query = $database->prepare("CALL sp_get_group_detail(:group_id, :detail_type)");
+        $query->execute(array(':group_id' => $group_id, ':detail_type' => 'members'));
+        $results = $query->fetchAll();
+        $query->closeCursor();
+        return $results;
     }
 
     public static function getGroupMessages($group_id)
@@ -187,15 +161,11 @@ class MessageModel
         self::ensureGroupTablesExist();
 
         $database = DatabaseFactory::getFactory()->getConnection();
-        $sql = "SELECT *
-                FROM group_messages
-                WHERE group_id = :group_id
-                ORDER BY created_at ASC";
-
-        $query = $database->prepare($sql);
-        $query->execute(array(':group_id' => $group_id));
-
-        return $query->fetchAll();
+        $query = $database->prepare("CALL sp_get_group_detail(:group_id, :detail_type)");
+        $query->execute(array(':group_id' => $group_id, ':detail_type' => 'messages'));
+        $results = $query->fetchAll();
+        $query->closeCursor();
+        return $results;
     }
 
     public static function isUserInGroup($group_id, $user_id)
@@ -203,18 +173,10 @@ class MessageModel
         self::ensureGroupTablesExist();
 
         $database = DatabaseFactory::getFactory()->getConnection();
-        $sql = "SELECT COUNT(*) AS count
-                FROM chat_group_members
-                WHERE group_id = :group_id
-                AND user_id = :user_id";
-
-        $query = $database->prepare($sql);
-        $query->execute(array(
-            ':group_id' => $group_id,
-            ':user_id' => $user_id
-        ));
-
+        $query = $database->prepare("CALL sp_is_user_in_group(:group_id, :user_id)");
+        $query->execute(array(':group_id' => $group_id, ':user_id' => $user_id));
         $result = $query->fetch();
+        $query->closeCursor();
         return !empty($result) && $result->count > 0;
     }
 
@@ -246,88 +208,51 @@ class MessageModel
                         :message_content
                     )";
 
-            $query = $database->prepare($sql);
+            $query = $database->prepare("CALL sp_insert_message(:sender_id, :recipient_id, :group_id, :message_content)");
             $query->execute(array(
-                ':group_id' => $group_id,
                 ':sender_id' => $sender_id,
+                ':recipient_id' => null,
+                ':group_id' => $group_id,
                 ':message_content' => $message_content
             ));
+            $query->closeCursor();
 
             return;
         }
 
-        $sql = "INSERT INTO messages
-                (
-                    sender_id,
-                    recipient_id,
-                    message_content
-                )
-                VALUES
-                (
-                    :sender_id,
-                    :recipient_id,
-                    :message_content
-                )";
-
-        $query = $database->prepare($sql);
+        $query = $database->prepare("CALL sp_insert_message(:sender_id, :recipient_id, :group_id, :message_content)");
         $query->execute(array(
             ':sender_id' => $sender_id,
             ':recipient_id' => $recipient_id,
+            ':group_id' => null,
             ':message_content' => $message_content
         ));
+        $query->closeCursor();
     }
 
     public static function getUnreadMessagesCount()
 {
     $database = DatabaseFactory::getFactory()->getConnection();
-
-    $sql = "SELECT COUNT(*) as unread
-            FROM messages
-            WHERE recipient_id = :user_id
-            AND is_read = 0";
-
-    $query = $database->prepare($sql);
-
-    $query->execute(array(
-        ':user_id' => Session::get('user_id')
-    ));
-
-    return $query->fetch()->unread;
+    $query = $database->prepare("CALL sp_count_unread(:user_id, :other_user_id)");
+    $query->execute(array(':user_id' => Session::get('user_id'), ':other_user_id' => null));
+    $result = $query->fetch();
+    $query->closeCursor();
+    return $result ? $result->unread : 0;
 }
 public static function getUnreadMessagesFromUser($other_user_id)
 {
     $database = DatabaseFactory::getFactory()->getConnection();
-
-    $sql = "SELECT COUNT(*) AS unread
-            FROM messages
-            WHERE sender_id = :other
-            AND recipient_id = :me
-            AND is_read = 0";
-
-    $query = $database->prepare($sql);
-
-    $query->execute(array(
-        ':other' => $other_user_id,
-        ':me' => Session::get('user_id')
-    ));
-
-    return $query->fetch()->unread;
+    $query = $database->prepare("CALL sp_count_unread(:user_id, :other_user_id)");
+    $query->execute(array(':user_id' => Session::get('user_id'), ':other_user_id' => $other_user_id));
+    $result = $query->fetch();
+    $query->closeCursor();
+    return $result ? $result->unread : 0;
 }
 public static function markMessagesAsRead($other_user_id)
 {
     $database = DatabaseFactory::getFactory()->getConnection();
-
-    $sql = "UPDATE messages
-            SET is_read = 1
-            WHERE sender_id = :other
-            AND recipient_id = :me
-            AND is_read = 0";
-
-    $query = $database->prepare($sql);
-
-    $query->execute(array(
-        ':other' => $other_user_id,
-        ':me' => Session::get('user_id')
-    ));
+    $query = $database->prepare("CALL sp_mark_messages_read(:other, :me)");
+    $query->execute(array(':other' => $other_user_id, ':me' => Session::get('user_id')));
+    $query->closeCursor();
 }
 }
