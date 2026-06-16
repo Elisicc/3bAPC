@@ -13,7 +13,25 @@
     <input id="publish-button" type="submit" value="Publish" disabled>
 </form>
 
+<script>
+    const pictures = document.querySelectorAll('.selectable-picture');
+    const publishForm = document.getElementById('publish-form');
+    const publishButton = document.getElementById('publish-button');
 
+    pictures.forEach(function (picture) {
+        picture.addEventListener('click', function () {
+            const pictureId = picture.dataset.pictureId;
+
+            publishForm.action = '<?php echo Config::get('URL'); ?>picture/publish/' + pictureId;
+            publishButton.disabled = false;
+
+            pictures.forEach(function (p) {
+                p.style.outline = 'none';
+            });
+
+            picture.style.outline = '3px solid #4CAF50';
+        });
+    });
 </script>
 
 <div class="container">
