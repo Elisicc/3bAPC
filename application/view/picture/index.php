@@ -9,30 +9,40 @@
     <input type="submit" value="Upload">
 </form>
 
-<form id="publish-form" action="" method="post">
-    <input id="publish-button" type="submit" value="Publish" disabled>
-</form>
+<style>
+    .picture-item-container {
+        position: relative;
+        display: inline-block;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        overflow: hidden;
+    }
 
-<script>
-    const pictures = document.querySelectorAll('.selectable-picture');
-    const publishForm = document.getElementById('publish-form');
-    const publishButton = document.getElementById('publish-button');
+    .picture-item-container:hover .delete-btn {
+        display: block;
+    }
 
-    pictures.forEach(function (picture) {
-        picture.addEventListener('click', function () {
-            const pictureId = picture.dataset.pictureId;
+    .delete-btn {
+        display: none;
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background-color: #f44336;
+        color: white;
+        border: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        font-size: 18px;
+        cursor: pointer;
+        line-height: 1;
+        z-index: 10;
+    }
 
-            publishForm.action = '<?php echo Config::get('URL'); ?>picture/publish/' + pictureId;
-            publishButton.disabled = false;
-
-            pictures.forEach(function (p) {
-                p.style.outline = 'none';
-            });
-
-            picture.style.outline = '3px solid #4CAF50';
-        });
-    });
-</script>
+    .delete-btn:hover {
+        background-color: #d32f2f;
+    }
+</style>
 
 <div class="container">
     <h1>PictureController/index</h1>
@@ -44,6 +54,26 @@
         <h3>Picture Upload and removal</h3>
         <p>
             Test Text for my Picture site
-        <p>
+        </p>
     </div>
+
+    <?php if (!empty($this->pictures)) : ?>
+        <div class="picture-gallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 20px;">
+            <?php foreach ($this->pictures as $picture) : ?>
+                <div class="picture-item-container">
+                    <a href="<?php echo Config::get('URL'); ?>picture/show/<?php echo $picture->picture_id; ?>" target="_blank">
+                        <img src="<?php echo Config::get('URL'); ?>picture/show/<?php echo $picture->picture_id; ?>"
+                             alt="<?= htmlentities($picture->original_filename); ?>"
+                             style="width: 100%; height: 200px; object-fit: cover; display: block;">
+                    </a>
+                    <button class="delete-btn" onclick="if(confirm('Bild wirklich löschen?')) window.location.href='<?php echo Config::get('URL'); ?>picture/delete/<?php echo $picture->picture_id; ?>'">
+                        ✕
+                    </button>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php else : ?>
+        <p>Du hast noch keine Bilder hochgeladen.</p>
+    <?php endif; ?>
 </div>
+
