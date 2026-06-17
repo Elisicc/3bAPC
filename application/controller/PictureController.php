@@ -26,4 +26,10 @@ class PictureController extends Controller
     {
         PictureModel::showPicture($picture_id);
     }
+
+    public function delete($picture_id)
+    {
+        PictureModel::deletePicture($picture_id);
+        Redirect::to('picture/index');
+    }
 }
