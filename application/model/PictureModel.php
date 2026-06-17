@@ -146,4 +146,59 @@ class PictureModel
         readfile($file_path);
         exit;
     }
+
+    public static function deletePicture($picture_id)
+    {
+        if (!$picture_id) {
+            Session::add('feedback_negative', 'Invalid picture ID.');
+            return false;
+        }
+
+        $database = DatabaseFactory::getFactory()->getConnection();
+
+        // Get picture details
+        $sql = "SELECT picture_id, user_id, filename
+                FROM pictures
+                WHERE picture_id = :picture_id
+                AND user_id = :user_id
+                LIMIT 1";
+
+        $query = $database->prepare($sql);
+        $query->execute(array(
+            ':picture_id' => $picture_id,
+            ':user_id' => Session::get('user_id')
+        ));
+
+        $picture = $query->fetch();
+
+        if (!$picture) {
+            Session::add('feedback_negative', 'Picture not found or you do not have permission to delete it.');
+            return false;
+        }
+
+        // Delete file from filesystem
+        $file_path = self::getPictureBasePath() . $picture->user_id . '/' . $picture->filename;
+        if (file_exists($file_path)) {
+            unlink($file_path);
+        }
+
+        // Delete from database
+        $sql = "DELETE FROM pictures
+                WHERE picture_id = :picture_id
+                AND user_id = :user_id";
+
+        $query = $database->prepare($sql);
+        $query->execute(array(
+            ':picture_id' => $picture_id,
+            ':user_id' => Session::get('user_id')
+        ));
+
+        if ($query->rowCount() == 1) {
+            Session::add('feedback_positive', 'Picture deleted successfully.');
+            return true;
+        }
+
+        Session::add('feedback_negative', 'Could not delete picture from database.');
+        return false;
+    }
 }
