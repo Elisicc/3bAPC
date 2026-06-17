@@ -48,15 +48,6 @@
     <h1>PictureController/index</h1>
     <div class="box">
 
-        <!-- echo out the system feedback (error and success messages) -->
-        <?php $this->renderFeedbackMessages(); ?>
-
-        <h3>Picture Upload and removal</h3>
-        <p>
-            Test Text for my Picture site
-        </p>
-    </div>
-
     <?php if (!empty($this->pictures)) : ?>
         <div class="picture-gallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 20px;">
             <?php foreach ($this->pictures as $picture) : ?>
