@@ -142,6 +142,11 @@ class PictureModel
         }
 
         header('Content-Type: ' . $picture->mime_type);
+
+        if (Request::get('download') === '1') {
+            header('Content-Disposition: attachment; filename="' . basename($picture->filename) . '"');
+        }
+
         header('Content-Length: ' . filesize($file_path));
         readfile($file_path);
         exit;

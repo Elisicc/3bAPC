@@ -10,28 +10,84 @@
 </form>
 
 <style>
-    .picture-item-container {
-        position: relative;
-        display: inline-block;
-        border: 2px solid #ddd;
-        border-radius: 5px;
-        overflow: hidden;
+    .gallery {
+        --size: 18em;
+        --gap: 1em;
+        --zoom: 1.3;
+
+        display: grid;
+        gap: var(--gap);
+        grid-template-columns: repeat(auto-fit, minmax(var(--size), 1fr));
+        justify-content: center;
+        padding: 20px;
     }
 
-    .picture-item-container:hover .delete-btn {
+    .gallery figure {
+        position: relative;
+        overflow: hidden;
+        width: var(--size);
+        height: var(--size);
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        margin: 0;
+    }
+
+    .gallery figure a {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .gallery figure:hover .delete-btn,
+    .gallery figure:hover .download-btn {
         display: block;
     }
 
-    .delete-btn {
+    .gallery figcaption {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        padding: 0.5em 0;
+        text-align: center;
+        color: white;
+        background: rgba(0, 0, 0, 0.35);
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        font-size: 0.9rem;
+        pointer-events: none;
+    }
+
+    .gallery figure:hover figcaption,
+    .gallery figure:focus-within figcaption {
+        opacity: 1;
+    }
+
+    .gallery > figure img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: grayscale(80%);
+        transition: transform 0.35s ease, filter 0.35s ease;
+        transform-origin: center center;
+        transform: scale(1);
+        display: block;
+    }
+
+    .gallery figure:hover img,
+    .gallery figure:focus-within img {
+        filter: grayscale(0);
+        transform: scale(var(--zoom));
+    }
+
+    .delete-btn,
+    .download-btn {
         display: none;
         position: absolute;
         top: 5px;
-        right: 5px;
-        background-color: #f44336;
-        color: white;
-        border: none;
         width: 30px;
         height: 30px;
+        border: none;
         border-radius: 50%;
         font-size: 18px;
         cursor: pointer;
@@ -39,8 +95,24 @@
         z-index: 10;
     }
 
+    .delete-btn {
+        right: 5px;
+        background-color: #f44336;
+        color: white;
+    }
+
+    .download-btn {
+        right: 45px;
+        background-color: #2196f3;
+        color: white;
+    }
+
     .delete-btn:hover {
         background-color: #d32f2f;
+    }
+
+    .download-btn:hover {
+        background-color: #1976d2;
     }
 </style>
 
@@ -49,18 +121,21 @@
     <div class="box">
 
     <?php if (!empty($this->pictures)) : ?>
-        <div class="picture-gallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 20px;">
+        <div class="gallery">
             <?php foreach ($this->pictures as $picture) : ?>
-                <div class="picture-item-container">
+                <figure>
                     <a href="<?php echo Config::get('URL'); ?>picture/show/<?php echo $picture->picture_id; ?>" target="_blank">
                         <img src="<?php echo Config::get('URL'); ?>picture/show/<?php echo $picture->picture_id; ?>"
-                             alt="<?= htmlentities($picture->original_filename); ?>"
-                             style="width: 100%; height: 200px; object-fit: cover; display: block;">
+                             alt="<?= htmlentities($picture->original_filename); ?>">
                     </a>
+                    <figcaption><?= htmlentities($picture->original_filename); ?></figcaption>
+                    <button class="download-btn" onclick="window.location.href='<?php echo Config::get('URL'); ?>picture/show/<?php echo $picture->picture_id; ?>?download=1'" title="Herunterladen">
+                        ⬇
+                    </button>
                     <button class="delete-btn" onclick="if(confirm('Bild wirklich löschen?')) window.location.href='<?php echo Config::get('URL'); ?>picture/delete/<?php echo $picture->picture_id; ?>'">
                         ✕
                     </button>
-                </div>
+                </figure>
             <?php endforeach; ?>
         </div>
     <?php else : ?>
