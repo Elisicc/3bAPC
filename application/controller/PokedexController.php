@@ -13,8 +13,8 @@ class PokedexController extends Controller
 
         $pokemon = $model->getPokemon();
 
-        var_dump($pokemon);
-
-        $this->View->render('pokedex/index');
+        $this->View->render('pokedex/index',[
+            'pokemon' => $pokemon
+        ]);
     }
 }
