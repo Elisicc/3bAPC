@@ -13,9 +13,14 @@
     <div style="margin-bottom:20px;">
         <img src="<?= $imageUrl ?>" alt="<?= $poke['name'] ?>">
         <br>
-        <?= ucfirst($poke['id']) ?>
-        <?= ucfirst($poke['name']) ?>
-        <?= ucfirst($poke['types']) ?>
+
+        <strong>#<?= $pokemonId; ?></strong>
+
+
+        <a href="<?= Config::get('URL') . 'pokedex/details/' . $pokemonId; ?>">
+            <?= ucfirst($poke['name']) ?>
+        </a>
+
     </div>
 
 <?php endforeach; ?>
