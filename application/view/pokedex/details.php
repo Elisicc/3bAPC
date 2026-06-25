@@ -1,25 +1,36 @@
 <div class="container">
 
-    <h1>
-        #<?= $this->pokemon['id']; ?>
-        <?= ucfirst($this->pokemon['name']); ?>
-    </h1>
+    <div class="box">
 
-    <img src="<?= $this->pokemon['sprites']['front_default']; ?>">
+        <h1>
+            #<?= sprintf("%03d", $this->pokemon['id']); ?>
+            <?= ucfirst($this->pokemon['name']); ?>
+        </h1>
 
-    <h3>Typen</h3>
+        <img src="<?= $this->pokemon['sprites']['front_default']; ?>" alt="<?= $this->pokemon['name']; ?>">
 
-    <ul>
-        <?php foreach ($this->pokemon['types'] as $type) : ?>
-            <li>
-                <?= ucfirst($type['type']['name']); ?>
-            </li>
-        <?php endforeach; ?>
+        <hr>
 
-        <?= ucfirst($this->pokemon['weight']) ?>
-        <?= ucfirst($this->pokemon['height']) ?>
+        <h3>Informationen</h3>
 
+        <p>
+            <strong>Größe:</strong>
+            <?= $this->pokemon['height'] / 10; ?> m
+        </p>
 
-    </ul>
+        <p>
+            <strong>Gewicht:</strong>
+            <?= $this->pokemon['weight'] / 10; ?> kg
+        </p>
+
+        <h3>Typen</h3>
+
+        <ul>
+            <?php foreach ($this->pokemon['types'] as $type) : ?>
+                <li><?= ucfirst($type['type']['name']); ?></li>
+            <?php endforeach; ?>
+        </ul>
+
+    </div>
 
 </div>
