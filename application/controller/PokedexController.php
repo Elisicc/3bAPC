@@ -28,6 +28,16 @@ class PokedexController extends Controller
     $this->View->render('pokedex/details', [
         'pokemon' => $pokemon   
     ]);
+    }
+    public function team($id)
+    {
+        $model = new PokedexModel();
 
+        $pokemon = $model->getDetails($id);
+
+        $this->View->render('pokedex/team', [
+            'pokemon' => $pokemon,
+            'pokemonId' => $id
+        ]);
     }
 }

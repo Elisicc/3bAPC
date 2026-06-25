@@ -59,7 +59,7 @@ $(document).ready(function () {
                         </a>
                     </td>
                     <td>
-                        <a href="#">
+                        <a href="<?= Config::get('URL') . 'pokedex/team/' . $pokemonId; ?>">
                             Zum Team
                         </a>
                     </td>
