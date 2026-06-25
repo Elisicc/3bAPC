@@ -17,4 +17,17 @@ class PokedexController extends Controller
             'pokemon' => $pokemon
         ]);
     }
+
+
+    public function Details($id){
+
+    $model = new PokedexModel();
+
+    $pokemon = $model->getDetails($id);
+
+    $this->View->render('pokedex/details', [
+        'pokemon' => $pokemon   
+    ]);
+
+    }
 }
