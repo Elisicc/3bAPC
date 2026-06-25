@@ -4,7 +4,7 @@ class PokedexModel{
 
 public function getPokemon()
 {
-    $url = "https://pokeapi.co/api/v2/pokemon?limit=20";
+    $url = "https://pokeapi.co/api/v2/pokemon?limit=1025";
 
     $response = file_get_contents($url);
 
