@@ -40,4 +40,17 @@ class PokedexController extends Controller
             'pokemonId' => $id
         ]);
     }
+
+    public function saveTeam($pokemonId, $slot)
+{
+    $model = new PokedexModel();
+
+    $model->savePokemonToTeam(
+        Session::get('user_id'),
+        $pokemonId,
+        $slot
+    );
+
+    Redirect::to('pokedex');
+}
 }
