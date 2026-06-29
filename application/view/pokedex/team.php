@@ -39,6 +39,21 @@
 .team-slot p{
     margin-top:10px;
     font-weight:bold;
+    color:black;
+}
+
+.remove-btn{
+    margin-top:10px;
+    padding:6px 12px;
+    background:#dc3545;
+    color:white;
+    text-decoration:none;
+    border-radius:5px;
+    font-size:13px;
+}
+
+.remove-btn:hover{
+    background:#b02a37;
 }
 </style>
 
@@ -75,6 +90,14 @@
                     <img src="<?= $sprite ?>">
 
                     <p>#<?= sprintf("%03d",$teamSlots[$slot]); ?></p>
+
+                    <a class="remove-btn"
+                       href="<?= Config::get('URL'); ?>pokedex/removePokemon/<?= $this->pokemonId; ?>/<?= $slot; ?>"
+                       onclick="return confirm('Möchtest du dieses Pokémon wirklich aus deinem Team entfernen?');">
+
+                        Entfernen
+
+                    </a>
 
                 </div>
 

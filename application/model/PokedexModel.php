@@ -20,21 +20,33 @@ public function getDetails($id){
     return json_decode($response, true);
 
 }
-public function savePokemonToTeam($userId, $pokemonId, $slot)
+public function savePokemonToTeam($userId, $pokemonId, $pokemonName, $slot)
 {
     $database = DatabaseFactory::getFactory()->getConnection();
 
-    $sql = "INSERT INTO pokemon_team
-            (user_id, pokemon_id, slot)
-            VALUES (:user_id, :pokemon_id, :slot)";
+    $delete = $database->prepare("
+        DELETE FROM pokemon_team
+        WHERE user_id = :user_id
+        AND slot = :slot
+    ");
 
-    $query = $database->prepare($sql);
-
-    $query->execute(array(
+    $delete->execute([
         ':user_id' => $userId,
-        ':pokemon_id' => $pokemonId,
         ':slot' => $slot
-    ));
+    ]);
+
+    $insert = $database->prepare("
+    INSERT INTO pokemon_team
+    (user_id, pokemon_id, pokemon_name, slot)
+    VALUES (:user_id, :pokemon_id, :pokemon_name, :slot)
+");
+
+    $insert->execute([
+    ':user_id' => $userId,
+    ':pokemon_id' => $pokemonId,
+    ':pokemon_name' => ucfirst($pokemonName),
+    ':slot' => $slot
+]);
 }
 
 public function getUserTeam($userId)
@@ -52,6 +64,22 @@ public function getUserTeam($userId)
     ));
 
     return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function removePokemonFromTeam($userId, $slot)
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $sql = "DELETE FROM pokemon_team
+            WHERE user_id = :user_id
+            AND slot = :slot";
+
+    $query = $database->prepare($sql);
+
+    $query->execute(array(
+        ':user_id' => $userId,
+        ':slot' => $slot
+    ));
 }
 
 
