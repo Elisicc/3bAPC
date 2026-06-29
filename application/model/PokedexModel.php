@@ -37,6 +37,23 @@ public function savePokemonToTeam($userId, $pokemonId, $slot)
     ));
 }
 
+public function getUserTeam($userId)
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $sql = "SELECT * FROM pokemon_team
+            WHERE user_id = :user_id
+            ORDER BY slot ASC";
+
+    $query = $database->prepare($sql);
+
+    $query->execute(array(
+        ':user_id' => $userId
+    ));
+
+    return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
 
 }
 

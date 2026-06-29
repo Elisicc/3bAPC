@@ -29,17 +29,20 @@ class PokedexController extends Controller
         'pokemon' => $pokemon   
     ]);
     }
-    public function team($id)
-    {
-        $model = new PokedexModel();
+    public function team($pokemonId)
+{
+    $model = new PokedexModel();
 
-        $pokemon = $model->getDetails($id);
+    $pokemon = $model->getDetails($pokemonId);
 
-        $this->View->render('pokedex/team', [
-            'pokemon' => $pokemon,
-            'pokemonId' => $id
-        ]);
-    }
+    $team = $model->getUserTeam(Session::get('user_id'));
+
+    $this->View->render('pokedex/team', [
+        'pokemon' => $pokemon,
+        'pokemonId' => $pokemonId,
+        'team' => $team
+    ]);
+}
 
     public function saveTeam($pokemonId, $slot)
 {
