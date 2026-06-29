@@ -55,6 +55,25 @@
 .remove-btn:hover{
     background:#b02a37;
 }
+.details-btn{
+    margin-top:8px;
+    padding:6px 12px;
+    background:#007bff;
+    color:white;
+    text-decoration:none;
+    border-radius:5px;
+    font-size:13px;
+}
+
+.details-btn:hover{
+    background:#0056b3;
+}
+
+.button-group{
+    display:flex;
+    gap:10px;
+    margin-top:10px;
+}
 </style>
 
 <div class="container">
@@ -72,7 +91,7 @@
         $teamSlots = [];
 
         foreach($this->team as $member){
-            $teamSlots[$member['slot']] = $member['pokemon_id'];
+            $teamSlots[$member['slot']] = $member;
         }
 
         ?>
@@ -84,20 +103,36 @@
                 <div class="team-slot">
 
                     <?php
-                    $sprite = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/".$teamSlots[$slot].".png";
-                    ?>
+                    $sprite = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" . $teamSlots[$slot]['pokemon_id'] . ".png";                    ?>
 
                     <img src="<?= $sprite ?>">
 
-                    <p>#<?= sprintf("%03d",$teamSlots[$slot]); ?></p>
+                    <p style="font-size:18px; margin-bottom:5px;">
+                        <?= ucfirst($teamSlots[$slot]['pokemon_name']); ?>
+                    </p>
+
+                    <p style="font-size:14px; color:gray;">
+                        #<?= sprintf("%03d", $teamSlots[$slot]['pokemon_id']); ?>
+                    </p>
+
+                    <div class="button-group">
+
+                    <a class="details-btn"
+                    href="<?= Config::get('URL'); ?>pokedex/details/<?= $teamSlots[$slot]['pokemon_id']; ?>">
+
+                        Details
+
+                    </a>
 
                     <a class="remove-btn"
-                       href="<?= Config::get('URL'); ?>pokedex/removePokemon/<?= $this->pokemonId; ?>/<?= $slot; ?>"
-                       onclick="return confirm('Möchtest du dieses Pokémon wirklich aus deinem Team entfernen?');">
+                    href="<?= Config::get('URL'); ?>pokedex/removePokemon/<?= $this->pokemonId; ?>/<?= $slot; ?>"
+                    onclick="return confirm('Möchtest du dieses Pokémon wirklich aus deinem Team entfernen?');">
 
                         Entfernen
 
                     </a>
+
+                </div>
 
                 </div>
 
