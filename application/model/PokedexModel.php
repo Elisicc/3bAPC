@@ -66,6 +66,25 @@ public function getUserTeam($userId)
     return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
+public function pokemonAlreadyInTeam($userId, $pokemonId)
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $sql = "SELECT COUNT(*) 
+            FROM pokemon_team
+            WHERE user_id = :user_id
+            AND pokemon_id = :pokemon_id";
+
+    $query = $database->prepare($sql);
+
+    $query->execute([
+        ':user_id' => $userId,
+        ':pokemon_id' => $pokemonId
+    ]);
+
+    return $query->fetchColumn() > 0;
+}
+
 public function removePokemonFromTeam($userId, $slot)
 {
     $database = DatabaseFactory::getFactory()->getConnection();

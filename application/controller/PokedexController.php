@@ -48,6 +48,15 @@ public function saveTeam($pokemonId, $slot)
 {
     $model = new PokedexModel();
 
+    // Prüfen ob das Pokémon bereits im Team ist
+    if ($model->pokemonAlreadyInTeam(Session::get('user_id'), $pokemonId)) {
+
+        Session::add('feedback_negative', 'Dieses Pokémon befindet sich bereits in deinem Team.');
+
+        Redirect::to('pokedex/team/' . $pokemonId);
+        return;
+    }
+
     $pokemon = $model->getDetails($pokemonId);
 
     $model->savePokemonToTeam(
@@ -57,7 +66,7 @@ public function saveTeam($pokemonId, $slot)
         $slot
     );
 
-    Redirect::to('pokedex');
+    Redirect::to('pokedex/team/' . $pokemonId);
 }
     public function removePokemon($pokemonId, $slot)
 {
