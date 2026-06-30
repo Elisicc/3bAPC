@@ -147,6 +147,29 @@ public function isTeamPublic($userId)
 
     return $query->fetchColumn();
 }
+public function getPublicTeams()
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $sql = "
+        SELECT
+            u.user_id,
+            u.user_name,
+            p.pokemon_id,
+            p.pokemon_name,
+            p.slot
+        FROM users u
+        INNER JOIN pokemon_team p
+            ON u.user_id = p.user_id
+        WHERE u.team_public = 1
+        ORDER BY u.user_name, p.slot
+    ";
+
+    $query = $database->prepare($sql);
+    $query->execute();
+
+    return $query->fetchAll(PDO::FETCH_ASSOC);
+}
 
 }
 

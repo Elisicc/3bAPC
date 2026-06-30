@@ -101,6 +101,17 @@ public function setTeamPrivate()
     Redirect::to('pokedex');
 }
 
+public function publicTeams()
+{
+    $model = new PokedexModel();
+
+    $teams = $model->getPublicTeams();
+
+    $this->View->render('pokedex/publicTeams', [
+        'teams' => $teams
+    ]);
+}
+
 public function isTeamPublic($userId)
 {
     $database = DatabaseFactory::getFactory()->getConnection();
