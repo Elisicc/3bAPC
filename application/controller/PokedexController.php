@@ -80,6 +80,23 @@ public function saveTeam($pokemonId, $slot)
     Redirect::to('pokedex/team/' . $pokemonId);
 }
 
+public function setTeamPublic()
+{
+    $model = new PokedexModel();
+
+    $model->setTeamPublic(Session::get('user_id'));
+
+    Redirect::to('pokedex');
+}
+
+public function setTeamPrivate()
+{
+    $model = new PokedexModel();
+
+    $model->setTeamPrivate(Session::get('user_id'));
+
+    Redirect::to('pokedex');
+}
 
 
 

@@ -101,6 +101,35 @@ public function removePokemonFromTeam($userId, $slot)
     ));
 }
 
+public function setTeamPublic($userId)
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $sql = "UPDATE users
+            SET team_public = 1
+            WHERE user_id = :user_id";
+
+    $query = $database->prepare($sql);
+
+    $query->execute([
+        ':user_id' => $userId
+    ]);
+}
+
+public function setTeamPrivate($userId)
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $sql = "UPDATE users
+            SET team_public = 0
+            WHERE user_id = :user_id";
+
+    $query = $database->prepare($sql);
+
+    $query->execute([
+        ':user_id' => $userId
+    ]);
+}
 
 }
 
