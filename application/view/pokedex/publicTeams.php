@@ -27,8 +27,19 @@ foreach($this->teams as $team){
     ">
 
         <h2>
-            <?= ucfirst($username); ?>'s Team
+
+    <?= ucfirst($username); ?>'s Team
+
         </h2>
+
+        <a class="details-btn"
+        href="<?= Config::get('URL'); ?>pokedex/publicTeam/<?= $pokemon[0]['user_id']; ?>">
+
+            👁 Team ansehen
+
+        </a>
+
+        <br><br>
 
         <div style="display:flex; gap:20px; flex-wrap:wrap;">
 

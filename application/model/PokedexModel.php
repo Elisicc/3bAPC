@@ -171,5 +171,29 @@ public function getPublicTeams()
     return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
+public function getPublicTeam($userId)
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $sql = "
+        SELECT
+            pokemon_id,
+            pokemon_name,
+            slot
+        FROM pokemon_team
+        WHERE user_id = :user_id
+        ORDER BY slot
+    ";
+
+    $query = $database->prepare($sql);
+
+    $query->execute([
+        ':user_id' => $userId
+    ]);
+
+    return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
 }
 

@@ -112,6 +112,17 @@ public function publicTeams()
     ]);
 }
 
+public function publicTeam($userId)
+{
+    $model = new PokedexModel();
+
+    $team = $model->getPublicTeam($userId);
+
+    $this->View->render('pokedex/publicTeam', [
+        'team' => $team
+    ]);
+}
+
 public function isTeamPublic($userId)
 {
     $database = DatabaseFactory::getFactory()->getConnection();
