@@ -43,8 +43,21 @@
                     <a href="<?php echo Config::get('URL'); ?>picture/index">Pictures</a>
                     </li>
                 <li <?php if (View::checkForActiveController($filename, "pokedex")) { echo ' class="active" '; } ?> >
-                    <a href="<?php echo Config::get('URL'); ?>pokedex/index">Pokedex</a>
-                    </li>
+
+                    <a href="<?php echo Config::get('URL'); ?>pokedex">Pokedex</a>
+                    <ul class="navigation-submenu">
+                        <li>
+                            <a href="<?php echo Config::get('URL'); ?>pokedex/team/1">
+                                My Team
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo Config::get('URL'); ?>pokedex/publicTeams">
+                                Teams
+                            </a>
+                        </li>
+                    </ul>
+                </li>
 
             <?php } else { ?>
                 <li <?php if (View::checkForActiveControllerAndAction($filename, "login/index")) { echo ' class="active" '; } ?> >
