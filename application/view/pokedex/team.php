@@ -84,6 +84,30 @@
 
         <h3>Wähle einen freien Platz</h3>
 
+        <div style="margin-bottom:25px;">
+
+        <?php if($this->isPublic): ?>
+
+            <a class="details-btn"
+            href="<?= Config::get('URL'); ?>pokedex/setTeamPrivate">
+
+                Team privat machen
+
+            </a>
+
+        <?php else: ?>
+
+            <a class="details-btn"
+            href="<?= Config::get('URL'); ?>pokedex/setTeamPublic">
+
+                Team veröffentlichen
+
+            </a>
+
+        <?php endif; ?>
+
+        </div>
+
         <div class="team-grid">
 
         <?php

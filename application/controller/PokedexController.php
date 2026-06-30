@@ -37,11 +37,14 @@ class PokedexController extends Controller
 
     $team = $model->getUserTeam(Session::get('user_id'));
 
+    $isPublic = $model->isTeamPublic(Session::get('user_id'));
+
     $this->View->render('pokedex/team', [
-        'pokemon' => $pokemon,
-        'pokemonId' => $pokemonId,
-        'team' => $team
-    ]);
+    'pokemon' => $pokemon,
+    'pokemonId' => $pokemonId,
+    'team' => $team,
+    'isPublic' => $isPublic
+]);
 }
 
 public function saveTeam($pokemonId, $slot)
@@ -98,6 +101,22 @@ public function setTeamPrivate()
     Redirect::to('pokedex');
 }
 
+public function isTeamPublic($userId)
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $sql = "SELECT team_public
+            FROM users
+            WHERE user_id = :user_id";
+
+    $query = $database->prepare($sql);
+
+    $query->execute([
+        ':user_id' => $userId
+    ]);
+
+    return $query->fetchColumn();
+}
 
 
 

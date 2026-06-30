@@ -131,5 +131,22 @@ public function setTeamPrivate($userId)
     ]);
 }
 
+public function isTeamPublic($userId)
+{
+    $database = DatabaseFactory::getFactory()->getConnection();
+
+    $sql = "SELECT team_public
+            FROM users
+            WHERE user_id = :user_id";
+
+    $query = $database->prepare($sql);
+
+    $query->execute([
+        ':user_id' => $userId
+    ]);
+
+    return $query->fetchColumn();
+}
+
 }
 
