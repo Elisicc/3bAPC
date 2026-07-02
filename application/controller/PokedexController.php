@@ -7,14 +7,15 @@ class PokedexController extends Controller
         parent::__construct();
     }
 
-    public function index()
+    public function index($slot = null)
     {
         $model = new PokedexModel();
 
         $pokemon = $model->getPokemon();
 
-        $this->View->render('pokedex/index',[
-            'pokemon' => $pokemon
+       $this->View->render('pokedex/index',[
+        'pokemon' => $pokemon,
+        'slot' => $slot 
         ]);
     }
 
