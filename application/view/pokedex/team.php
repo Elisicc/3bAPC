@@ -163,7 +163,7 @@
             <?php else : ?>
 
                 <a class="team-slot"
-                   href="<?= Config::get('URL').'pokedex/saveTeam/'.$this->pokemonId.'/'.$slot; ?>">
+                    href="<?= Config::get('URL').'pokedex/index/'.$slot; ?>">
 
                     <div class="plus">+</div>
 

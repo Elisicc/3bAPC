@@ -59,9 +59,21 @@ $(document).ready(function () {
                         </a>
                     </td>
                     <td>
+
+                    <?php if(isset($this->slot) && $this->slot !== null): ?>
+
+                        <a href="<?= Config::get('URL') . 'pokedex/saveTeam/' . $pokemonId . '/' . $this->slot; ?>">
+                            Zum Team
+                        </a>
+
+                    <?php else: ?>
+
                         <a href="<?= Config::get('URL') . 'pokedex/team/' . $pokemonId; ?>">
                             Zum Team
                         </a>
+
+                    <?php endif; ?>
+
                     </td>
                 </tr>
             <?php endforeach; ?>
